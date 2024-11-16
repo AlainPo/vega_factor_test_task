@@ -1,0 +1,1 @@
+# vega_factor_test_task

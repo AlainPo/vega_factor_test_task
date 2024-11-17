@@ -1,5 +1,4 @@
 import typing as tp
-import numpy as np
 
 from dataclasses import dataclass
 
@@ -41,26 +40,12 @@ class Checker:
 
 
     def run_check(self) -> None:
-        # for a in range(1, self.N + 1):
-        #     for b in range(a + 1, self.N + 1):
-        #         path = self.get_path(a, b)
-
-        #         cur_a, cur_b = a, b
-        #         for numbers_step in path.steps[0]: # check a
-        #             assert numbers_step.m + numbers_step.n == cur_a
-        #             cur_a  = numbers_step.next()
-
-        #         for numbers_step in path.steps[1]: # check b
-        #             assert numbers_step.m + numbers_step.n == cur_b
-        #             cur_b = numbers_step.next()
-
-        #         assert cur_a == cur_b
 
         pass
 
 
     def iterate(self, a: int, values_a: list, list_a: list, path: list, depth: int=0, max_depth: int=5):
-        if a > self.N**4 or depth > max_depth:
+        if a > self.N**3 or depth > max_depth:
             return
         for m in range(0, a // 2 + 1):
             n = a - m

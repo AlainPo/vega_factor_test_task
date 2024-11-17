@@ -18,7 +18,6 @@ def test_23():
     path = checker.get_path(a, b)
     print(path)
     assert path == correct_path
-    # return correct_path
 
 
 def test_correct_path(N: int):
@@ -27,7 +26,7 @@ def test_correct_path(N: int):
 
     for a in range(1, N + 1):
         for b in range(a + 1, N + 1):
-            path = checker.get_path(a, b) # возвращает NumberPath(a, b, steps=([NumbersStep], [NumbersStep]) )
+            path = checker.get_path(a, b) 
             assert path.a == a
             assert path.b == b
 

@@ -44,20 +44,37 @@ class Checker:
         pass
 
 
-    def iterate(self, a: int, values_a: list, list_a: list, path: list, depth: int=0, max_depth: int=5):
-        if a > self.N**3 or depth > max_depth:
-            return
-        for m in range(0, a // 2 + 1):
-            n = a - m
-            next_value = NumbersPath.sq_sum1(m,n)
+    def iterate(self, values_n: list, list_n: list):
+        for a in values_n[-1]:
+            vals_a_i = []
+            for m in range (0, a//2+1):
+                n = a - m
+                next_value = NumbersPath.sq_sum1(m,n)
+                path_a = next((item[1] for item in list_n if item[0] == a), [])  # Создаем копию пути
+                new_path_a = path_a.copy()
+                new_path_a.append(NumbersStep(m, n))  # Добавляем NumbersStep
+                vals_a_i.append(next_value)
+                list_n.append([next_value, new_path_a])  # Сохраняем значение и путь
+            values_n.append(vals_a_i)
 
-            new_path = path.copy()  # Создаем копию пути
-            new_path.append(NumbersStep(m, n))  # Добавляем NumbersStep
+        return values_n, list_n
 
-            values_a.append(next_value)
-            list_a.append([next_value, new_path])  # Сохраняем значение и путь
-            self.iterate(next_value, values_a, list_a, new_path, depth+1)
+    def find_intersection(self, values_a: list, list_a: list, values_b: list, list_b: list):
+        set_a = set(sum(values_a, []))
+        set_b = set(sum(values_b, []))
+        while not list(set_a.intersection(set_b)):
+            values_a, list_a = self.iterate(values_a, list_a)
+            values_b, list_b = self.iterate(values_b, list_b)
 
+            set_a = set(sum(values_a, []))
+            set_b = set(sum(values_b, []))
+            
+        common_values = list(set_a.intersection(set_b))
+        min_value = min(common_values)
+        min_path_a = next((item[1] for item in list_a if item[0] == min_value), None)
+        min_path_b = next((item[1] for item in list_b if item[0] == min_value), None)
+        
+        return (min_path_a, min_path_b)
 
     def get_path(self, a: int, b: int) -> NumbersPath:
         list_a = []
@@ -66,24 +83,12 @@ class Checker:
         list_a.append([a, []])
         list_b.append([b, []])
 
-        values_a = [a]
-        values_b = [b]
+        values_a = [[a]]
+        values_b = [[b]]
 
-        self.iterate(a, values_a, list_a, [])
-        self.iterate(b, values_b, list_b, [])
+        (min_path_a, min_path_b) = self.find_intersection(values_a, list_a, values_b, list_b) 
 
-        # Находим общие значения a и b
-        common_values = list(set(values_a).intersection(values_b))
-
-        if common_values:
-            min_value = min(common_values)
-            min_path_a = next((item[1] for item in list_a if item[0] == min_value), None)
-            min_path_b = next((item[1] for item in list_b if item[0] == min_value), None)
-
-            return NumbersPath(a, b, (min_path_a, min_path_b))
-        else:
-            print("Нет общих значений.")
-            return None
+        return NumbersPath(a, b, (min_path_a, min_path_b))
         
 
         

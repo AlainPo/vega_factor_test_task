@@ -1,6 +1,8 @@
 import typing as tp
 
 from dataclasses import dataclass
+from collections import deque, defaultdict
+
 
 @dataclass
 class NumbersStep:
@@ -37,58 +39,88 @@ class Checker:
             max_n (int): N from the task description
         """
         self.N = max_n
-
+        self.graph = defaultdict(set)
 
     def run_check(self) -> None:
-
         pass
 
+    def generate_graph(self, N):
+        """Генерирует граф с рёбрами по условиям задачи."""
+        for m in range(N + 1):
+            for n in range(m, N + 1 - m):
 
-    def iterate(self, values_n: list, list_n: list):
-        for a in values_n[-1]:
-            vals_a_i = []
-            for m in range (0, a//2+1):
-                n = a - m
-                next_value = NumbersPath.sq_sum1(m,n)
-                path_a = next((item[1] for item in list_n if item[0] == a), [])  # Создаем копию пути
-                new_path_a = path_a.copy()
-                new_path_a.append(NumbersStep(m, n))  # Добавляем NumbersStep
-                vals_a_i.append(next_value)
-                list_n.append([next_value, new_path_a])  # Сохраняем значение и путь
-            values_n.append(vals_a_i)
+                a = m + n
+                b = m**2 + n**2 + 1
+                if a <= N:
+                    self.graph[a].add((b, m, n))
+                    self.graph[b].add((a, m, n))
 
-        return values_n, list_n
 
-    def find_intersection(self, values_a: list, list_a: list, values_b: list, list_b: list):
-        set_a = set(sum(values_a, []))
-        set_b = set(sum(values_b, []))
-        while not list(set_a.intersection(set_b)):
-            values_a, list_a = self.iterate(values_a, list_a)
-            values_b, list_b = self.iterate(values_b, list_b)
+    def check_path(self, path):
+        """Перед тем, как вернуть путь, проверяем на соответствие условиям"""
+        cur_a, cur_b = path.a, path.b
+        for numbers_step in path.steps[0]: # check a
+            if numbers_step.m + numbers_step.n != cur_a:
+                return False                                  
+            cur_a  = numbers_step.next()
 
-            set_a = set(sum(values_a, []))
-            set_b = set(sum(values_b, []))
-            
-        common_values = list(set_a.intersection(set_b))
-        min_value = min(common_values)
-        min_path_a = next((item[1] for item in list_a if item[0] == min_value), None)
-        min_path_b = next((item[1] for item in list_b if item[0] == min_value), None)
-        
-        return (min_path_a, min_path_b)
+        for numbers_step in path.steps[1]: # check b
+            if numbers_step.m + numbers_step.n != cur_b:
+                return False   
+            cur_b = numbers_step.next()
 
-    def get_path(self, a: int, b: int) -> NumbersPath:
-        list_a = []
-        list_b = []
+        if cur_a != cur_b:
+            return False
+        return True
 
-        list_a.append([a, []])
-        list_b.append([b, []])
+    
+    def find_path(self, a, b):
+        """Поиск пути между числами a и b с использованием BFS."""
+        queue = deque([(a, [])])  # (текущее число, путь для a, путь для b)
+        visited = set()
 
-        values_a = [[a]]
-        values_b = [[b]]
+        while queue:
+            current, path = queue.popleft()
 
-        (min_path_a, min_path_b) = self.find_intersection(values_a, list_a, values_b, list_b) 
+            if current == b:
+                # Найдено пересечение, возвращаем путь
 
-        return NumbersPath(a, b, (min_path_a, min_path_b))
-        
+                nums = []
+                for step in path:
+                    nums.append(step.m**2 + step.n**2+1)
+                index = nums.index(max(nums))
+
+                path_a = path[:index+1]
+                path_b = path[index+1:][::-1]
+                return NumbersPath(
+                    a, b,
+                    (path_a, path_b)
+                )
+
+            if current in visited:
+                continue
+
+            visited.add(current)
+
+            # Обходим соседей
+            for neighbor, m, n in self.graph[current]:
+                if neighbor not in visited:
+                    new_path = path.copy() + [NumbersStep(m, n)]
+                    queue.append((neighbor, new_path))
+
+        return None
+
+    def get_path(self, a, b):
+        """Возвращает путь между числами a и b."""
+        N = self.N
+        path = None
+        while not path or not self.check_path(path):
+            N*=2
+            self.generate_graph(N)
+            path = self.find_path(a, b) # возвращает NumberPath(a, b, steps=([NumbersStep], [NumbersStep]) )
+
+        return path
+
+    
 
         

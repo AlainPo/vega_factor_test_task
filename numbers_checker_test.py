@@ -26,7 +26,9 @@ def test_correct_path(N: int):
 
     for a in range(1, N + 1):
         for b in range(a + 1, N + 1):
+            print('a=', a, 'b=', b)
             path = checker.get_path(a, b) 
+            print(path)
             assert path.a == a
             assert path.b == b
 
